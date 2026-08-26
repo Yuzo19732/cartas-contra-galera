@@ -1,0 +1,49 @@
+Cartas Contra a Galera
+======================
+
+Este projeto e distribuido sob a licenca
+Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic
+(CC BY-NC-SA 2.0).
+
+Texto completo da licenca:
+https://creativecommons.org/licenses/by-nc-sa/2.0/
+
+
+POR QUE ESSA LICENCA
+--------------------
+
+O conteudo das cartas (o arquivo cartas.js) vem do baralho oficial de
+Cards Against Humanity, versao 2.4, transcrito do PDF de impressao caseira
+publicado pelos proprios criadores em https://www.cardsagainsthumanity.com/
+
+Cards Against Humanity e licenciado sob CC BY-NC-SA 2.0. Como este projeto usa
+esse conteudo, a clausula ShareAlike obriga que ele seja distribuido sob a
+mesma licenca.
+
+
+O QUE ISSO SIGNIFICA NA PRATICA
+-------------------------------
+
+Voce PODE:
+  - usar, copiar e modificar este projeto de graca
+  - jogar com quem quiser
+  - publicar sua propria versao modificada
+
+Voce PRECISA:
+  - dar credito a Cards Against Humanity pelo conteudo das cartas
+  - manter esta mesma licenca na sua versao
+
+Voce NAO PODE:
+  - vender este jogo, nem cobrar por ele, nem ganhar dinheiro com ele
+    de nenhuma forma
+
+Este projeto nao tem fins lucrativos e nao tem qualquer vinculo com a
+Cards Against Humanity LLC.
+
+
+FONTE
+-----
+
+A fonte Neue Helvetica NAO esta incluida neste repositorio. Ela e uma fonte
+comercial da Linotype/Monotype e nao pode ser redistribuida. O CSS usa a fonte
+apenas se ela existir localmente; caso contrario cai em Helvetica/Arial.
