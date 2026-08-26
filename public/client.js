@@ -270,14 +270,6 @@ for (const campo of ["in-rodadas", "in-tempo"]) {
   });
 }
 
-$("form-chat").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const texto = $("in-chat").value;
-  if (!texto.trim()) return;
-  socket.emit("chat", { texto });
-  $("in-chat").value = "";
-});
-
 // ---------------------------------------------------------------------------
 // Desenho da tela
 // ---------------------------------------------------------------------------
@@ -496,7 +488,59 @@ function desenharMao() {
     }
     mao.appendChild(div);
   }
+  posicionarMao();
 }
+
+// Abre as cartas em leque. A do meio fica reta e as das pontas viram pra fora,
+// subindo um pouco, que e o desenho que a mao faz quando segura um baralho.
+function posicionarMao() {
+  const mao = $("mao");
+  const cartas = [...mao.children];
+  const total = cartas.length;
+  if (!total) return;
+
+  // Largura da carta e eixo do giro vem do CSS, entao o leque se ajusta no celular
+  const estilo = getComputedStyle(mao);
+  const larguraCarta = parseFloat(estilo.getPropertyValue("--larg")) || 172;
+  const pivo = parseFloat(estilo.getPropertyValue("--pivo")) || 1.9;
+  const giroMaximo = parseFloat(estilo.getPropertyValue("--giro")) || 26;
+
+  const giroTotal = Math.min(giroMaximo, total * 3.4); // com poucas cartas, abre menos
+  const anguloMax = giroTotal / 2;
+  const meio = (total - 1) / 2;
+
+  const rad = (anguloMax * Math.PI) / 180;
+
+  // O eixo do giro fica abaixo da carta, entao girar tambem joga a carta pro lado.
+  // Sem contar isso, as pontas do leque vazam pra fora da tela.
+  const distanciaAoEixo = (pivo - 0.5) * larguraCarta; // cartas sao quadradas
+  const empurraoDoGiro = distanciaAoEixo * Math.sin(rad);
+
+  // Carta girada tambem ocupa mais largura que ela mesma (os cantos saem pra fora)
+  const larguraGirada = larguraCarta * Math.cos(rad) + larguraCarta * Math.sin(rad);
+
+  const espacoUtil = Math.max(0, mao.clientWidth - larguraGirada - 2 * empurraoDoGiro - 8);
+  const passo = total > 1 ? Math.max(14, Math.min(66, espacoUtil / (total - 1))) : 0;
+
+  cartas.forEach((carta, i) => {
+    const desvio = i - meio;                       // negativo a esquerda, positivo a direita
+    const proporcao = meio === 0 ? 0 : desvio / meio;
+    const giro = proporcao * (giroTotal / 2);
+    const altura = Math.pow(Math.abs(proporcao), 2) * 26; // pontas descem, meio sobe
+
+    carta.style.setProperty("--x", desvio * passo + "px");
+    carta.style.setProperty("--y", altura + "px");
+    carta.style.setProperty("--r", giro + "deg");
+    carta.style.zIndex = String(i + 1);
+  });
+}
+
+// Se a janela mudar de tamanho, o leque se refaz
+let tempoDoResize = null;
+window.addEventListener("resize", () => {
+  clearTimeout(tempoDoResize);
+  tempoDoResize = setTimeout(posicionarMao, 120);
+});
 
 function alternarCarta(id) {
   const pos = selecionadas.indexOf(id);

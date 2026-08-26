@@ -513,17 +513,6 @@ function ligarSockets() {
       enviarEstado(sala);
     });
 
-    // ---- chat ------------------------------------------------------------
-    socket.on("chat", ({ texto }) => {
-      const sala = minhaSala();
-      const eu = euMesmo(sala);
-      if (!sala || !eu) return;
-      const msg = String(texto || "").trim().slice(0, 200);
-      if (!msg) return;
-      anunciar(sala, `${eu.nome}: ${msg}`, "chat");
-      enviarEstado(sala);
-    });
-
     // ---- expulsar (so o dono) -------------------------------------------
     socket.on("expulsar", ({ jogadorId }) => {
       const sala = minhaSala();

@@ -194,8 +194,6 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .feed .m.sucesso { color: var(--branco); }
 .feed .m.aviso { color: #b0b0b0; }
 .feed .m.chat { color: var(--texto); font-weight: 700; }
-.form-chat { display: flex; gap: 6px; margin-top: 10px; }
-.form-chat input { padding: 10px 12px; font-size: 14px; }
 
 .mesa-area { flex: 1; min-width: 0; }
 .area { background: var(--painel); border: 1px solid var(--borda); border-radius: 6px; padding: 24px; }
@@ -232,7 +230,12 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .carta.preta { background: var(--preto); color: var(--branco); border: 1px solid var(--borda-forte); }
 .carta.branca { background: var(--branco); color: var(--preto); }
 
-.carta.grande { width: 290px; flex-shrink: 0; font-size: 21px; padding: 20px; }
+.carta.grande {
+  width: 300px; flex-shrink: 0; font-size: 21px; padding: 22px;
+  /* levemente torta, como uma carta largada na mesa */
+  transform: rotate(-1.4deg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .6), 0 3px 8px rgba(0, 0, 0, .5);
+}
 
 /* o espaco em branco da carta preta */
 .carta .buraco { border-bottom: 2px solid currentColor; display: inline-block; min-width: 78px; }
@@ -262,18 +265,71 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .instrucao b { color: var(--branco); font-weight: 700; }
 .esperando { color: #5a5a5a; font-size: 13px; }
 
-/* mao */
-#area-mao { margin-top: 28px; }
-.titulo-mao { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+/* ===========================================================
+   A MAO - as cartas abertas em leque, como se estivessem
+   sendo seguradas. Cada carta ganha a posicao pelo JS, em
+   --x (deslocamento), --y (altura no arco) e --r (giro).
+   =========================================================== */
+#area-mao { margin-top: 30px; }
+.titulo-mao { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
 .titulo-mao h3 { font-size: 10px; text-transform: uppercase; letter-spacing: .16em; color: var(--texto-fraco); }
 .dica-selecao { font-size: 11px; color: var(--branco); text-transform: uppercase; letter-spacing: .1em; }
 
-.mao { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-.mao .carta { cursor: pointer; transition: transform .12s, outline-color .12s; outline: 2px solid transparent; }
-.mao .carta:hover { transform: translateY(-6px); }
-.mao .carta.selecionada { outline-color: var(--branco); transform: translateY(-10px); }
-.mao .carta.bloqueada { cursor: default; opacity: .4; }
-.mao .carta.bloqueada:hover { transform: none; }
+.mao {
+  --larg: 172px;
+  /* onde fica o eixo do giro, em alturas de carta contadas do topo.
+     Quanto maior, mais aberto o leque - e mais pra fora as pontas vao. */
+  --pivo: 1.9;
+  /* abertura maxima do leque, em graus (da ponta esquerda a direita) */
+  --giro: 26;
+  position: relative;
+  height: 268px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-top: 10px;
+  /* chao de luz atras do leque, so pra dar profundidade */
+  background: radial-gradient(60% 90% at 50% 100%, rgba(255, 255, 255, .07) 0%, transparent 70%);
+}
+
+.mao .carta {
+  position: absolute;
+  bottom: 6px;
+  width: var(--larg);
+  font-size: 14px;
+  padding: 13px;
+  cursor: pointer;
+  transform-origin: 50% calc(var(--pivo) * 100%);
+  transform: translateX(var(--x, 0)) translateY(var(--y, 0)) rotate(var(--r, 0deg));
+  transition: transform .22s cubic-bezier(.2, .8, .3, 1), box-shadow .22s;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .55), 0 2px 4px rgba(0, 0, 0, .4);
+  outline: 2px solid transparent;
+  will-change: transform;
+}
+
+/* levantar a carta pra ler, igual quando voce puxa uma do leque */
+.mao .carta:hover {
+  transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 52px)) rotate(0deg) scale(1.05);
+  box-shadow: 0 26px 44px rgba(0, 0, 0, .7), 0 3px 6px rgba(0, 0, 0, .5);
+  z-index: 100 !important;
+}
+
+.mao .carta.selecionada {
+  transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 68px)) rotate(0deg) scale(1.05);
+  outline-color: var(--branco);
+  box-shadow: 0 28px 46px rgba(0, 0, 0, .72), 0 0 0 6px rgba(255, 255, 255, .1);
+  /* precisa de !important: o JS poe z-index inline em cada carta pra
+     empilhar o leque, e inline ganha de regra de classe */
+  z-index: 90 !important;
+}
+
+.mao .carta.bloqueada { cursor: default; opacity: .45; }
+.mao .carta.bloqueada:hover {
+  transform: translateX(var(--x, 0)) translateY(var(--y, 0)) rotate(var(--r, 0deg));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .55);
+  z-index: auto !important;
+}
+
 .ordem {
   position: absolute; top: 9px; right: 9px;
   width: 22px; height: 22px; border-radius: 50%;
@@ -282,10 +338,26 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 }
 
 /* mesa da revelacao: cada resposta e a frase ja montada numa carta preta */
-.mesa { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; margin-top: 26px; }
+.mesa { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin-top: 30px; }
 .mesa:empty { display: none; }
-.jogada { display: flex; flex-direction: column; gap: 9px; }
-.carta.resposta { font-size: 16px; }
+
+.jogada {
+  display: flex; flex-direction: column; gap: 10px;
+  /* entram uma depois da outra, como cartas sendo viradas na mesa */
+  animation: virar .38s cubic-bezier(.2, .8, .3, 1) backwards;
+}
+@keyframes virar {
+  from { opacity: 0; transform: translateY(16px) scale(.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+.carta.resposta {
+  font-size: 16px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .55), 0 2px 5px rgba(0, 0, 0, .4);
+  transition: transform .18s;
+}
+.jogada:hover .carta.resposta { transform: translateY(-5px); }
+
 .jogada .quem {
   text-align: center; font-size: 10px; letter-spacing: .16em;
   text-transform: uppercase; color: var(--texto-fraco);
@@ -338,9 +410,16 @@ body.modo-app .so-no-navegador { display: none; }
   .area { padding: 16px; }
   .carta.grande { width: 100%; max-width: 340px; font-size: 19px; }
   .tabuleiro { flex-direction: column; gap: 14px; }
-  .mao { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
-  .mao .carta { font-size: 13px; padding: 11px; }
-  .mesa { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  /* no celular o leque abre menos, senao as pontas saem da tela */
+  .mao { --larg: 118px; --pivo: 1.5; --giro: 16; height: 200px; }
+  .mao .carta { font-size: 12px; padding: 10px; }
+  .mao .carta:hover {
+    transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 38px)) rotate(0deg) scale(1.06);
+  }
+  .mao .carta.selecionada {
+    transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 50px)) rotate(0deg) scale(1.06);
+  }
+  .mesa { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
   .mesa .carta { font-size: 13px; padding: 11px; }
   .feed { max-height: 170px; }
 }
