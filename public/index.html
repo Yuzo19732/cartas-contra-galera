@@ -12,41 +12,43 @@
 <!-- ===================== TELA DE ENTRADA ===================== -->
 <section id="tela-entrada" class="tela ativa">
   <div class="entrada-caixa">
-    <div class="logo">
-      <span class="logo-carta preta">Cartas contra</span>
-      <span class="logo-carta branca">a galera</span>
+    <div class="topo-entrada">
+      <div class="logo">
+        <span class="logo-carta preta">Cartas contra</span>
+        <span class="logo-carta branca">a galera</span>
+      </div>
+      <div class="troca-idioma" id="idioma-entrada">
+        <button class="botao-idioma" data-idioma="pt">PT</button>
+        <button class="botao-idioma" data-idioma="en">EN</button>
+      </div>
     </div>
-    <p class="subtitulo">Um jogo pra jogar com os amigos. Quanto pior a resposta, melhor.</p>
+    <p class="subtitulo" data-t="entrada.subtitulo"></p>
 
     <label class="campo">
-      <span>Seu apelido</span>
-      <input id="in-nome" maxlength="16" placeholder="Como te chamam?" autocomplete="off" />
+      <span data-t="entrada.apelido"></span>
+      <input id="in-nome" maxlength="16" data-tph="entrada.apelidoDica" autocomplete="off" />
     </label>
 
-    <button id="btn-criar" class="botao principal grande">Criar uma sala nova</button>
-    <p class="rodape-dica so-no-app">Voce vira o host: a partida roda no seu PC.</p>
+    <button id="btn-criar" class="botao principal grande" data-t="entrada.criar"></button>
+    <p class="rodape-dica so-no-app" data-t="entrada.criarNota"></p>
 
-    <div class="ou"><span>ou entrar numa sala</span></div>
+    <div class="ou"><span data-t="entrada.ou"></span></div>
 
     <!-- so aparece dentro do app: o endereco de quem esta hospedando -->
     <label class="campo so-no-app">
-      <span>Endereco de quem esta hospedando</span>
+      <span data-t="entrada.endereco"></span>
       <input id="in-endereco" placeholder="192.168.0.10:3000" autocomplete="off" />
     </label>
 
     <div class="linha">
-      <input id="in-codigo" maxlength="4" placeholder="CODIGO" class="codigo-input" autocomplete="off" />
-      <button id="btn-entrar" class="botao">Entrar</button>
+      <input id="in-codigo" maxlength="4" data-tph="entrada.codigo" class="codigo-input" autocomplete="off" />
+      <button id="btn-entrar" class="botao" data-t="entrada.entrar"></button>
     </div>
 
     <p id="erro-entrada" class="erro"></p>
-    <p class="rodape-dica so-no-navegador">2 pessoas ou mais. Funciona no celular tambem.</p>
+    <p class="rodape-dica so-no-navegador" data-t="entrada.dica"></p>
 
-    <p class="creditos">
-      Cartas do baralho oficial de <b>Cards Against Humanity</b>, usadas sob a licenca
-      <a href="https://creativecommons.org/licenses/by-nc-sa/2.0/" target="_blank" rel="noopener">Creative Commons BY-NC-SA 2.0</a>.
-      Projeto sem fins lucrativos.
-    </p>
+    <p class="creditos" data-thtml="entrada.creditos"></p>
   </div>
 </section>
 
@@ -54,24 +56,24 @@
 <section id="tela-jogo" class="tela">
 
   <header class="topo">
-    <button id="btn-codigo" class="chip" title="Clique para copiar o convite">
-      Sala <b id="lbl-codigo">----</b>
+    <button id="btn-codigo" class="chip">
+      <span data-t="topo.sala"></span> <b id="lbl-codigo">----</b>
     </button>
-    <div class="chip" id="lbl-rodada">Lobby</div>
+    <div class="chip" id="lbl-rodada"></div>
     <div class="chip cronometro" id="lbl-tempo" hidden><b>--</b></div>
     <div class="espaco"></div>
-    <button id="btn-painel" class="chip so-mobile">Jogadores</button>
-    <button id="btn-sair" class="chip">Sair</button>
+    <button id="btn-painel" class="chip so-mobile" data-t="topo.jogadores"></button>
+    <button id="btn-sair" class="chip" data-t="topo.sair"></button>
   </header>
 
   <div class="corpo">
 
     <!-- ---------- coluna lateral: jogadores + feed ---------- -->
     <aside id="painel" class="painel">
-      <h3>Jogadores</h3>
+      <h3 data-t="painel.jogadores"></h3>
       <ul id="lista-jogadores" class="jogadores"></ul>
 
-      <h3>O que rolou</h3>
+      <h3 data-t="painel.feed"></h3>
       <div id="feed" class="feed"></div>
     </aside>
 
@@ -80,34 +82,42 @@
 
       <!-- LOBBY -->
       <div id="area-lobby" class="area">
-        <h2>Sala montada</h2>
-        <p class="explica">
-          Manda o codigo <b id="lbl-codigo2">----</b> pra galera.
-          Precisa de pelo menos 2 pessoas.
-        </p>
-        <button id="btn-convite" class="botao">Copiar convite</button>
+        <h2 data-t="lobby.titulo"></h2>
+        <p class="explica" id="lbl-explica-lobby"></p>
+        <button id="btn-convite" class="botao" data-t="lobby.copiar"></button>
 
         <div id="enderecos-host" class="config" hidden></div>
 
         <div id="config-dono" class="config" hidden>
-          <h3>Configuracoes</h3>
+          <h3 data-t="lobby.config"></h3>
+
           <label class="campo linha-campo">
-            <span>Quantas rodadas</span>
+            <span data-t="lobby.idioma"></span>
+            <div class="troca-idioma" id="idioma-sala">
+              <button class="botao-idioma" data-idioma="pt">PT</button>
+              <button class="botao-idioma" data-idioma="en">EN</button>
+            </div>
+          </label>
+          <p class="nota-campo" data-t="lobby.idiomaNota"></p>
+
+          <label class="campo linha-campo">
+            <span data-t="lobby.rodadas"></span>
             <input id="in-rodadas" type="number" min="0" max="200" value="20" />
           </label>
-          <p class="nota-campo">0 = o jogo nunca acaba, so vai continuando.</p>
+          <p class="nota-campo" data-t="lobby.rodadasNota"></p>
+
           <label class="campo linha-campo">
-            <span>Tempo por rodada (seg)</span>
+            <span data-t="lobby.tempo"></span>
             <input id="in-tempo" type="number" min="0" max="300" step="5" value="90" />
           </label>
-          <p class="nota-campo">0 = sem cronometro.</p>
+          <p class="nota-campo" data-t="lobby.tempoNota"></p>
         </div>
 
         <div id="config-visita" class="config leve">
-          <p>Rodadas: <b id="lbl-rodadas">20</b> &nbsp;/&nbsp; Tempo: <b id="lbl-tempo-cfg">90s</b></p>
+          <p id="lbl-resumo-config"></p>
         </div>
 
-        <button id="btn-comecar" class="botao principal grande" disabled>Comecar a partida</button>
+        <button id="btn-comecar" class="botao principal grande" disabled data-t="lobby.comecar"></button>
         <p id="aviso-lobby" class="explica"></p>
       </div>
 
@@ -124,7 +134,7 @@
 
         <div id="area-mao">
           <div class="titulo-mao">
-            <h3>Sua mao</h3>
+            <h3 data-t="jogo.suaMao"></h3>
             <span id="contador-selecao" class="dica-selecao"></span>
           </div>
           <div id="mao" class="mao"></div>
@@ -133,9 +143,9 @@
 
       <!-- FIM -->
       <div id="area-fim" class="area" hidden>
-        <h2>Fim da partida</h2>
-        <p class="explica">Foram <b id="lbl-fim-rodadas">0</b> rodadas. Bora de novo?</p>
-        <button id="btn-reiniciar" class="botao principal">Jogar de novo</button>
+        <h2 data-t="fim.titulo"></h2>
+        <p class="explica" id="lbl-fim-explica"></p>
+        <button id="btn-reiniciar" class="botao principal" data-t="fim.denovo"></button>
       </div>
 
     </main>
@@ -145,6 +155,7 @@
 <div id="aviso" class="aviso"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="idiomas.js"></script>
 <script src="client.js"></script>
 </body>
 </html>

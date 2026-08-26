@@ -28,6 +28,41 @@ const MARCA = `<span class="marca-carta"><svg width="9" height="11" viewBox="0 0
 if (ehApp) document.body.classList.add("modo-app");
 
 // ---------------------------------------------------------------------------
+// Idioma
+// ---------------------------------------------------------------------------
+// Fora da sala vale a escolha da pessoa; dentro da sala vale o idioma que o
+// dono escolheu, senao um leria "Sua mao" e outro "Your hand" no mesmo jogo.
+let idiomaLocal = localStorage.getItem("ccg_idioma") || "pt";
+
+function idioma() {
+  if (estado && estado.config && TEXTOS[estado.config.idioma]) return estado.config.idioma;
+  return TEXTOS[idiomaLocal] ? idiomaLocal : "pt";
+}
+
+// t("lobby.faltam", { n: 2 })  ->  "Faltam 2 pessoa(s) pra comecar."
+function t(chave, dados) {
+  const tabela = TEXTOS[idioma()] || TEXTOS.pt;
+  let txt = tabela[chave];
+  if (txt === undefined) txt = (TEXTOS.en[chave] !== undefined ? TEXTOS.en[chave] : chave);
+  if (!dados) return txt;
+  return txt.replace(/\{(\w+)\}/g, (tudo, campo) =>
+    dados[campo] === undefined ? tudo : String(dados[campo])
+  );
+}
+
+// Preenche tudo que esta marcado no HTML e acende o botao do idioma atual
+function aplicarTextos() {
+  for (const el of document.querySelectorAll("[data-t]")) el.textContent = t(el.dataset.t);
+  for (const el of document.querySelectorAll("[data-thtml]")) el.innerHTML = t(el.dataset.thtml);
+  for (const el of document.querySelectorAll("[data-tph]")) el.placeholder = t(el.dataset.tph);
+  $("btn-codigo").title = t("topo.copiar");
+  document.documentElement.lang = idioma() === "en" ? "en" : "pt-BR";
+  for (const b of document.querySelectorAll(".botao-idioma")) {
+    b.classList.toggle("ativo", b.dataset.idioma === idioma());
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Ajudantes
 // ---------------------------------------------------------------------------
 function escapar(txt) {
@@ -139,12 +174,12 @@ function conectar(endereco) {
 
   socket.on("expulso", () => {
     limparSessao();
-    alert("Voce foi removido da sala.");
+    alert(t("aviso.expulso"));
     location.reload();
   });
 
   socket.on("connect_error", () => {
-    mostrarErroEntrada("Nao consegui falar com esse servidor. Confere o endereco.");
+    mostrarErroEntrada(t("erro.servidor"));
   });
 
   return socket;
@@ -153,6 +188,8 @@ function conectar(endereco) {
 // ---------------------------------------------------------------------------
 // Tela de entrada
 // ---------------------------------------------------------------------------
+aplicarTextos();
+
 const nomeSalvo = localStorage.getItem("ccg_nome");
 if (nomeSalvo) $("in-nome").value = nomeSalvo;
 
@@ -171,7 +208,7 @@ function irParaJogo(codigo, token) {
 
 function pegarApelido() {
   const nome = $("in-nome").value.trim();
-  if (!nome) { mostrarErroEntrada("Escreve um apelido primeiro."); return null; }
+  if (!nome) { mostrarErroEntrada(t("erro.apelido")); return null; }
   mostrarErroEntrada("");
   return nome;
 }
@@ -181,8 +218,8 @@ $("btn-criar").onclick = () => {
   const nome = pegarApelido();
   if (!nome) return;
   conectar("");
-  socket.emit("criarSala", { nome }, (r) => {
-    if (!r.ok) return mostrarErroEntrada(r.erro);
+  socket.emit("criarSala", { nome, idioma: idiomaLocal }, (r) => {
+    if (!r.ok) return mostrarErroEntrada(t("erro." + r.erro));
     irParaJogo(r.codigo, r.token);
   });
 };
@@ -192,11 +229,11 @@ $("btn-entrar").onclick = () => {
   const nome = pegarApelido();
   if (!nome) return;
   const codigo = $("in-codigo").value.trim().toUpperCase();
-  if (codigo.length !== 4) return mostrarErroEntrada("O codigo tem 4 caracteres.");
+  if (codigo.length !== 4) return mostrarErroEntrada(t("erro.codigo"));
 
   // No app, o amigo digita o endereco do PC de quem esta hospedando.
   const endereco = ehApp ? normalizarEndereco($("in-endereco").value) : "";
-  if (ehApp && !endereco) return mostrarErroEntrada("Escreve o endereco de quem esta hospedando.");
+  if (ehApp && !endereco) return mostrarErroEntrada(t("erro.endereco"));
 
   const sessao = lerSessao();
   const token = sessao && sessao.codigo === codigo && sessao.endereco === endereco
@@ -204,7 +241,7 @@ $("btn-entrar").onclick = () => {
 
   conectar(endereco);
   socket.emit("entrarSala", { codigo, nome, token }, (r) => {
-    if (!r.ok) return mostrarErroEntrada(r.erro);
+    if (!r.ok) return mostrarErroEntrada(t("erro." + r.erro));
     irParaJogo(r.codigo, r.token);
   });
 };
@@ -241,7 +278,7 @@ function textoDoConvite() {
 async function copiar(texto) {
   try {
     await navigator.clipboard.writeText(texto);
-    aviso("Copiado");
+    aviso(t("aviso.copiado"));
   } catch {
     prompt("Copie:", texto);
   }
@@ -252,7 +289,7 @@ $("btn-convite").onclick = () => copiar(textoDoConvite());
 $("btn-painel").onclick = () => $("painel").classList.toggle("escondido");
 
 $("btn-sair").onclick = () => {
-  if (!confirm("Sair da sala?")) return;
+  if (!confirm(t("aviso.sair"))) return;
   if (socket) socket.emit("sair");
   limparSessao();
   location.reload();
@@ -260,6 +297,22 @@ $("btn-sair").onclick = () => {
 
 $("btn-comecar").onclick = () => socket.emit("comecar");
 $("btn-reiniciar").onclick = () => socket.emit("reiniciar");
+
+// --- botoes de idioma ---------------------------------------------------
+// Na tela de entrada muda so o seu; no lobby o dono muda pra sala inteira.
+for (const btn of document.querySelectorAll("#idioma-entrada .botao-idioma")) {
+  btn.onclick = () => {
+    idiomaLocal = btn.dataset.idioma;
+    localStorage.setItem("ccg_idioma", idiomaLocal);
+    aplicarTextos();
+  };
+}
+for (const btn of document.querySelectorAll("#idioma-sala .botao-idioma")) {
+  btn.onclick = (e) => {
+    e.preventDefault();
+    socket.emit("config", { idioma: btn.dataset.idioma });
+  };
+}
 
 for (const campo of ["in-rodadas", "in-tempo"]) {
   $(campo).addEventListener("change", () => {
@@ -277,13 +330,14 @@ function desenhar() {
   if (!estado) return;
 
   $("lbl-codigo").textContent = estado.codigo;
-  $("lbl-codigo2").textContent = estado.codigo;
 
   const limite = estado.config.totalDeRodadas;
+  aplicarTextos();
   $("lbl-rodada").textContent =
-    estado.fase === "lobby" ? "Lobby" :
-    estado.fase === "fim" ? "Fim da partida" :
-    limite > 0 ? `Rodada ${estado.rodada} de ${limite}` : `Rodada ${estado.rodada}`;
+    estado.fase === "lobby" ? t("topo.lobby") :
+    estado.fase === "fim" ? t("topo.fim") :
+    limite > 0 ? t("topo.rodadaDe", { n: estado.rodada, total: limite })
+               : t("topo.rodada", { n: estado.rodada });
 
   desenharJogadores();
   desenharFeed();
@@ -306,22 +360,22 @@ function desenharJogadores() {
     if (!j.online) li.classList.add("offline");
 
     let selos = "";
-    if (j.dono) selos += '<span class="selo-mini vazado">HOST</span>';
+    if (j.dono) selos += `<span class="selo-mini vazado">${t("painel.host")}</span>`;
     if (estado.fase === "escolhendo")
       selos += j.jogou
-        ? '<span class="selo-mini">PRONTO</span>'
+        ? `<span class="selo-mini">${t("painel.pronto")}</span>`
         : '<span class="selo-mini vazado">...</span>';
 
     li.innerHTML =
-      `<span class="nome">${escapar(j.nome)}${j.id === estado.euId ? " (voce)" : ""}</span>` + selos;
+      `<span class="nome">${escapar(j.nome)}${j.id === estado.euId ? escapar(t("painel.voce")) : ""}</span>` + selos;
 
     if (estado.souDono && j.id !== estado.euId) {
       const btn = document.createElement("button");
       btn.className = "btn-expulsar";
-      btn.title = "Remover da sala";
+      btn.title = t("painel.remover");
       btn.textContent = "×";
       btn.onclick = () => {
-        if (confirm(`Remover ${j.nome} da sala?`)) socket.emit("expulsar", { jogadorId: j.id });
+        if (confirm(t("aviso.remover", { nome: j.nome }))) socket.emit("expulsar", { jogadorId: j.id });
       };
       li.appendChild(btn);
     }
@@ -336,7 +390,7 @@ function desenharFeed() {
   for (const m of estado.historico) {
     const div = document.createElement("div");
     div.className = "m " + m.tipo;
-    div.textContent = m.texto;
+    div.textContent = t("feed." + m.chave, m.dados);
     feed.appendChild(div);
   }
   if (coladoNoFim) feed.scrollTop = feed.scrollHeight;
@@ -348,9 +402,16 @@ function desenharLobby() {
   $("config-visita").hidden = estado.souDono;
 
   const limite = estado.config.totalDeRodadas;
-  $("lbl-rodadas").textContent = limite > 0 ? limite : "sem fim";
-  $("lbl-tempo-cfg").textContent = estado.config.segundosParaJogar
-    ? estado.config.segundosParaJogar + "s" : "sem limite";
+  const rodadasTxt = limite > 0 ? String(limite) : t("lobby.semFim");
+  const tempoTxt = estado.config.segundosParaJogar
+    ? estado.config.segundosParaJogar + "s" : t("lobby.semTempo");
+
+  $("lbl-explica-lobby").innerHTML = t("lobby.explica", { codigo: `<b>${escapar(estado.codigo)}</b>` });
+  $("lbl-resumo-config").textContent = t("lobby.resumo", {
+    idioma: NOMES_DOS_IDIOMAS[estado.config.idioma] || estado.config.idioma,
+    rodadas: rodadasTxt,
+    tempo: tempoTxt,
+  });
 
   if (document.activeElement !== $("in-rodadas")) $("in-rodadas").value = limite;
   if (document.activeElement !== $("in-tempo")) $("in-tempo").value = estado.config.segundosParaJogar;
@@ -359,11 +420,11 @@ function desenharLobby() {
   const caixa = $("enderecos-host");
   if (ehApp && estado.souDono && app.enderecos.length) {
     caixa.hidden = false;
-    caixa.innerHTML = "<h3>Seus amigos digitam isto no app</h3>" +
+    caixa.innerHTML = `<h3>${escapar(t("lobby.enderecos"))}</h3>` +
       app.enderecos.map((e) =>
         `<p class="endereco"><b>${escapar(e.ip)}:${app.porta}</b> <span>${escapar(e.nome)}</span></p>`
       ).join("") +
-      `<p class="nota-campo">Junto com o codigo da sala: <b>${escapar(estado.codigo)}</b></p>`;
+      `<p class="nota-campo">${t("lobby.comCodigo", { codigo: `<b>${escapar(estado.codigo)}</b>` })}</p>`;
   } else {
     caixa.hidden = true;
   }
@@ -375,9 +436,9 @@ function desenharLobby() {
 
   $("aviso-lobby").textContent = estado.souDono
     ? (online < estado.minJogadores
-        ? `Faltam ${estado.minJogadores - online} pessoa(s) pra comecar.`
-        : `${online} jogadores prontos.`)
-    : "Esperando o dono da sala comecar a partida...";
+        ? t("lobby.faltam", { n: estado.minJogadores - online })
+        : t("lobby.prontos", { n: online }))
+    : t("lobby.esperando");
 }
 
 // ---------------------------------------------------------------------------
@@ -404,16 +465,14 @@ function desenharInstrucao() {
   const el = $("instrucao");
 
   if (estado.fase === "escolhendo") {
-    if (estado.jaJoguei) {
-      el.innerHTML = `Carta na mesa. Agora e esperar.<br>` +
-        `<span class="esperando">Faltam: ${estado.faltamJogar.map(escapar).join(", ") || "ninguem"}</span>`;
-    } else {
-      el.innerHTML = `Escolha <b>${estado.cartaPreta.pick}</b> carta(s) da sua mao pra completar a frase.<br>` +
-        `<span class="esperando">Faltam: ${estado.faltamJogar.map(escapar).join(", ") || "ninguem"}</span>`;
-    }
+    const nomes = estado.faltamJogar.map(escapar).join(", ") || escapar(t("jogo.ninguem"));
+    const espera = `<span class="esperando">${t("jogo.faltam", { nomes })}</span>`;
+    el.innerHTML = estado.jaJoguei
+      ? escapar(t("jogo.jaJoguei")) + "<br>" + espera
+      : t("jogo.escolha", { n: estado.cartaPreta.pick }) + "<br>" + espera;
   } else if (estado.fase === "mostrando") {
-    el.innerHTML = `Deu. Leiam tudo em voz alta e decidam entre voces quem foi melhor.<br>` +
-      `<span class="esperando">Qualquer um pode puxar a proxima rodada.</span>`;
+    el.innerHTML = escapar(t("jogo.revelacao")) + "<br>" +
+      `<span class="esperando">${escapar(t("jogo.revelacaoNota"))}</span>`;
   }
 }
 
@@ -445,7 +504,7 @@ function desenharAcoes() {
     const btn = document.createElement("button");
     btn.className = "botao principal";
     const faltam = estado.cartaPreta.pick - selecionadas.length;
-    btn.textContent = faltam > 0 ? `Escolha mais ${faltam} carta(s)` : "Jogar carta(s)";
+    btn.textContent = faltam > 0 ? t("jogo.escolhaMais", { n: faltam }) : t("jogo.jogar");
     btn.disabled = faltam !== 0;
     btn.onclick = () => socket.emit("jogarCartas", { cartas: selecionadas });
     acoes.appendChild(btn);
@@ -457,7 +516,7 @@ function desenharAcoes() {
     btn.className = "botao principal";
     const limite = estado.config.totalDeRodadas;
     btn.textContent = (limite > 0 && estado.rodada >= limite)
-      ? "Terminar a partida" : "Proxima rodada";
+      ? t("jogo.terminar") : t("jogo.proxima");
     btn.onclick = () => socket.emit("proximaRodada");
     acoes.appendChild(btn);
   }
@@ -468,21 +527,26 @@ function desenharMao() {
   const podeEscolher = estado.fase === "escolhendo" && !estado.jaJoguei;
 
   $("contador-selecao").textContent = podeEscolher
-    ? `${selecionadas.length} de ${estado.cartaPreta.pick}`
+    ? t("jogo.contador", { n: selecionadas.length, total: estado.cartaPreta.pick })
     : "";
 
   mao.innerHTML = "";
   for (const carta of estado.minhaMao) {
+    // O slot fica parado no leque e recebe o mouse; a carta dentro dele e que sobe.
+    const slot = document.createElement("div");
+    slot.className = "slot";
+
     const div = document.createElement("div");
     div.className = "carta branca";
     div.innerHTML = `<div class="corpo-carta">${escapar(carta.texto)}</div>` + rodapeCarta(1);
+    slot.appendChild(div);
 
     if (!podeEscolher) {
-      div.classList.add("bloqueada");
+      slot.classList.add("bloqueada");
     } else {
       const pos = selecionadas.indexOf(carta.id);
       if (pos >= 0) {
-        div.classList.add("selecionada");
+        slot.classList.add("selecionada");
         if (estado.cartaPreta.pick > 1) {
           const badge = document.createElement("span");
           badge.className = "ordem";
@@ -490,9 +554,9 @@ function desenharMao() {
           div.appendChild(badge);
         }
       }
-      div.onclick = () => alternarCarta(carta.id);
+      slot.onclick = () => alternarCarta(carta.id);
     }
-    mao.appendChild(div);
+    mao.appendChild(slot);
   }
   posicionarMao();
 }
@@ -501,7 +565,7 @@ function desenharMao() {
 // subindo um pouco, que e o desenho que a mao faz quando segura um baralho.
 function posicionarMao() {
   const mao = $("mao");
-  const cartas = [...mao.children];
+  const cartas = [...mao.children]; // os slots
   const total = cartas.length;
   if (!total) return;
 
@@ -565,7 +629,7 @@ function alternarCarta(id) {
 
 // ---------------------------------------------------------------------------
 function desenharFim() {
-  $("lbl-fim-rodadas").textContent = estado.rodada;
+  $("lbl-fim-explica").innerHTML = t("fim.explica", { n: estado.rodada });
   $("btn-reiniciar").hidden = !estado.souDono;
 }
 

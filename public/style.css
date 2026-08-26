@@ -96,7 +96,20 @@ input::placeholder { color: #5a5a5a; }
   border-radius: 8px;
   padding: 32px;
 }
+.topo-entrada { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .logo { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; margin-bottom: 16px; }
+
+/* PT / EN */
+.troca-idioma { display: flex; gap: 4px; flex-shrink: 0; }
+.botao-idioma {
+  font-family: var(--fonte); font-weight: 700;
+  background: transparent; color: var(--texto-fraco);
+  border: 1px solid var(--borda-forte); border-radius: 3px;
+  padding: 6px 10px; font-size: 11px; letter-spacing: .1em;
+  cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+}
+.botao-idioma:hover { color: var(--texto); border-color: var(--texto-fraco); }
+.botao-idioma.ativo { background: var(--branco); color: var(--preto); border-color: var(--branco); }
 .logo-carta {
   font-size: 26px; letter-spacing: -0.03em; line-height: 1.05;
   padding: 9px 13px; border-radius: var(--raio-carta);
@@ -211,6 +224,10 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 /* Na revelacao a mao some (voce ja jogou) e as respostas ficam centralizadas,
    assim nao sobra espaco morto nem precisa rolar a pagina. */
 #area-jogo.revelando #mesa { margin-top: auto; margin-bottom: auto; }
+/* Na revelacao a carta preta sai: cada resposta ja mostra a frase completa,
+   entao ela so repetia o texto e a sombra dela caia em cima das respostas. */
+#area-jogo.revelando #carta-preta { display: none; }
+#area-jogo.revelando .tabuleiro { gap: 0; }
 .area h2 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 10px; }
 .explica { color: var(--texto-fraco); font-size: 14px; margin: 10px 0; line-height: 1.55; font-weight: 400; }
 .explica b { color: var(--branco); font-weight: 700; letter-spacing: .15em; }
@@ -302,7 +319,7 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .dica-selecao { font-size: 13px; color: var(--branco); text-transform: uppercase; letter-spacing: .1em; }
 
 .mao {
-  --larg: clamp(132px, 17vh, 200px);
+  --larg: clamp(150px, 21vh, 250px);
   /* quanto a carta e mais alta que larga (7/5) */
   --alt-fator: 1.4;
   /* onde fica o eixo do giro, em alturas de carta contadas do topo.
@@ -320,43 +337,52 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
   background: radial-gradient(60% 90% at 50% 100%, rgba(255, 255, 255, .07) 0%, transparent 70%);
 }
 
-.mao .carta {
+/* Cada carta mora dentro de um "slot". O slot e quem recebe a posicao do
+   leque e quem escuta o mouse - e ele NAO se mexe. A carta la dentro e que
+   sobe. Antes a propria carta subia, saia de baixo do cursor, o hover caia,
+   ela voltava... e ficava piscando e pegando a vizinha. */
+.mao .slot {
   position: absolute;
   bottom: 20px;
   width: var(--larg);
-  font-size: 16px;
-  padding: 15px;
   cursor: pointer;
   transform-origin: 50% calc(var(--pivo) * 100%);
   transform: translateX(var(--x, 0)) translateY(var(--y, 0)) rotate(var(--r, 0deg));
-  transition: transform .22s cubic-bezier(.2, .8, .3, 1), box-shadow .22s;
+}
+
+.mao .slot .carta {
+  position: relative;
+  width: 100%;
+  font-size: clamp(13px, 1.5vh, 17px);
+  padding: 15px;
+  transition: transform .2s cubic-bezier(.2, .8, .3, 1), box-shadow .2s;
   box-shadow: 0 10px 22px rgba(0, 0, 0, .55), 0 2px 4px rgba(0, 0, 0, .4);
   outline: 2px solid transparent;
   will-change: transform;
 }
 
-/* levantar a carta pra ler, igual quando voce puxa uma do leque */
-.mao .carta:hover {
-  transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 52px)) rotate(0deg) scale(1.05);
+/* levantar a carta pra ler, igual quando voce puxa uma do leque.
+   O rotate contrario desentorta a carta sem mexer no slot. */
+.mao .slot:hover { z-index: 100 !important; }
+.mao .slot:hover .carta {
+  transform: translateY(-54px) rotate(calc(-1 * var(--r, 0deg))) scale(1.06);
   box-shadow: 0 26px 44px rgba(0, 0, 0, .7), 0 3px 6px rgba(0, 0, 0, .5);
-  z-index: 100 !important;
 }
 
-.mao .carta.selecionada {
-  transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 68px)) rotate(0deg) scale(1.05);
+.mao .slot.selecionada { z-index: 90 !important; }
+.mao .slot.selecionada .carta {
+  transform: translateY(-70px) rotate(calc(-1 * var(--r, 0deg))) scale(1.06);
   outline-color: var(--branco);
   box-shadow: 0 28px 46px rgba(0, 0, 0, .72), 0 0 0 6px rgba(255, 255, 255, .1);
-  /* precisa de !important: o JS poe z-index inline em cada carta pra
-     empilhar o leque, e inline ganha de regra de classe */
-  z-index: 90 !important;
 }
 
-.mao .carta.bloqueada { cursor: default; opacity: .45; }
-.mao .carta.bloqueada:hover {
-  transform: translateX(var(--x, 0)) translateY(var(--y, 0)) rotate(var(--r, 0deg));
+.mao .slot.bloqueada { cursor: default; opacity: .45; }
+.mao .slot.bloqueada:hover { z-index: auto !important; }
+.mao .slot.bloqueada:hover .carta {
+  transform: none;
   box-shadow: 0 10px 22px rgba(0, 0, 0, .55);
-  z-index: auto !important;
 }
+
 
 .ordem {
   position: absolute; top: 9px; right: 9px;
@@ -383,7 +409,7 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 
 .carta.resposta {
   /* altura manda, largura sai da proporcao - assim cabe na tela */
-  height: clamp(200px, 31vh, 360px);
+  height: clamp(230px, 40vh, 430px);
   width: auto;
   font-size: clamp(14px, 1.7vh, 19px);
   box-shadow: 0 14px 30px rgba(0, 0, 0, .55), 0 2px 5px rgba(0, 0, 0, .4);
@@ -459,23 +485,16 @@ body.modo-app .so-no-navegador { display: none; }
     -webkit-overflow-scrolling: touch;
     background: none;
   }
-  .mao .carta {
+  .mao .slot {
     position: static;
     transform: none !important;
     flex: 0 0 auto;
     scroll-snap-align: center;
-    font-size: 14px;
   }
-  .mao .carta.selecionada { transform: translateY(-10px) !important; }
-  .mao .carta:hover { box-shadow: 0 10px 22px rgba(0, 0, 0, .55); }
-  .mao .carta { font-size: 12px; padding: 10px; }
-  .mao .carta:hover {
-    transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 38px)) rotate(0deg) scale(1.06);
-  }
-  .mao .carta.selecionada {
-    transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 50px)) rotate(0deg) scale(1.06);
-  }
-  .mesa { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .mao .slot .carta { font-size: 14px; transform: none !important; }
+  .mao .slot.selecionada .carta { transform: translateY(-10px) !important; }
+  .mao .slot:hover .carta { box-shadow: 0 10px 22px rgba(0, 0, 0, .55); }
+  .mesa { gap: 12px; }
   .mesa .carta { font-size: 13px; padding: 11px; }
   .feed { max-height: 170px; }
 }

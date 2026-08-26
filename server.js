@@ -24,7 +24,7 @@ const http = require("http");
 const os = require("os");
 const express = require("express");
 const { Server } = require("socket.io");
-const { PRETAS, BRANCAS } = require("./cartas");
+const { baralhoDe, IDIOMAS } = require("./baralhos");
 
 // ---------------------------------------------------------------------------
 // Ajustes gerais
@@ -102,6 +102,8 @@ function novaSala(codigo) {
     cronometro: null, // setTimeout ativo
     prazo: null, // timestamp de quando o tempo acaba
     config: {
+      // Idioma da sala: manda no baralho e nos textos da tela pra todo mundo.
+      idioma: "pt",
       // Nao existe vencedor. 0 = partida sem fim.
       totalDeRodadas: 20,
       segundosParaJogar: 90, // 0 = sem tempo
@@ -111,11 +113,12 @@ function novaSala(codigo) {
 }
 
 function montarBaralhos(sala) {
+  const baralho = baralhoDe(sala.config.idioma);
   sala.baralhoPretas = embaralhar(
-    PRETAS.map((texto) => ({ id: idAleatorio(), texto, pick: quantosEspacos(texto) }))
+    baralho.PRETAS.map((texto) => ({ id: idAleatorio(), texto, pick: quantosEspacos(texto) }))
   );
   sala.baralhoBrancas = embaralhar(
-    BRANCAS.map((texto) => ({ id: idAleatorio(), texto }))
+    baralho.BRANCAS.map((texto) => ({ id: idAleatorio(), texto }))
   );
   sala.usadasPretas = [];
   sala.usadasBrancas = [];
@@ -167,8 +170,10 @@ function quemFaltaJogar(sala) {
   return jogadoresAtivos(sala).filter((j) => !sala.jogadas.has(j.id));
 }
 
-function anunciar(sala, texto, tipo = "info") {
-  sala.historico.push({ id: idAleatorio(), texto, tipo, em: Date.now() });
+// Guarda um codigo, nao a frase pronta: assim cada jogador le o feed
+// no idioma da sala, e trocar de idioma reescreve o historico inteiro.
+function anunciar(sala, chave, dados = {}, tipo = "info") {
+  sala.historico.push({ id: idAleatorio(), chave, dados, tipo, em: Date.now() });
   if (sala.historico.length > 60) sala.historico.shift();
 }
 
@@ -197,7 +202,7 @@ function iniciarCronometro(sala) {
       const sorteadas = embaralhar([...jogador.mao]).slice(0, pick);
       registrarJogada(sala, jogador, sorteadas.map((c) => c.id));
     }
-    anunciar(sala, "Tempo esgotado. Cartas jogadas automaticamente.", "aviso");
+    anunciar(sala, "tempoEsgotado", {}, "aviso");
     conferirFimDaEscolha(sala);
     enviarEstado(sala);
   }, segundos * 1000);
@@ -210,7 +215,7 @@ function comecarPartida(sala) {
   montarBaralhos(sala);
   for (const jogador of sala.jogadores) jogador.mao = [];
   sala.rodada = 0;
-  anunciar(sala, "A partida comecou.", "sucesso");
+  anunciar(sala, "partidaComecou", {}, "sucesso");
   novaRodada(sala);
 }
 
@@ -222,7 +227,7 @@ function novaRodada(sala) {
   sala.cartaPreta = comprarPreta(sala);
   completarMaos(sala);
   sala.fase = "escolhendo";
-  anunciar(sala, `Rodada ${sala.rodada}.`, "info");
+  anunciar(sala, "rodada", { n: sala.rodada }, "info");
   iniciarCronometro(sala);
 }
 
@@ -259,7 +264,7 @@ function conferirFimDaEscolha(sala) {
       };
     })
   );
-  anunciar(sala, "Respostas na mesa. Leiam e decidam na call.", "sucesso");
+  anunciar(sala, "respostasNaMesa", {}, "sucesso");
 }
 
 // Qualquer jogador pode puxar a proxima rodada, pra nunca travar em uma pessoa so
@@ -270,14 +275,14 @@ function avancarRodada(sala) {
   if (limite > 0 && sala.rodada >= limite) {
     pararCronometro(sala);
     sala.fase = "fim";
-    anunciar(sala, `Acabaram as ${limite} rodadas. Fim da partida.`, "sucesso");
+    anunciar(sala, "fimDasRodadas", { n: limite }, "sucesso");
     return true;
   }
 
   if (jogadoresAtivos(sala).length < MIN_JOGADORES) {
     pararCronometro(sala);
     sala.fase = "lobby";
-    anunciar(sala, "Gente de menos pra continuar. Voltamos pro lobby.", "aviso");
+    anunciar(sala, "genteDeMenos", {}, "aviso");
     return true;
   }
 
@@ -338,25 +343,25 @@ function resolverAusencia(sala) {
   if (jogadoresAtivos(sala).length < MIN_JOGADORES) {
     pararCronometro(sala);
     sala.fase = "lobby";
-    anunciar(sala, "Gente de menos. Voltamos pro lobby.", "aviso");
+    anunciar(sala, "genteDeMenos", {}, "aviso");
     return;
   }
   // Talvez essa pessoa fosse a ultima que faltava jogar
   conferirFimDaEscolha(sala);
 }
 
-function removerJogador(sala, jogadorId, aviso) {
+function removerJogador(sala, jogadorId, chave) {
   const jogador = acharJogador(sala, jogadorId);
   if (!jogador) return;
   sala.jogadores = sala.jogadores.filter((j) => j.id !== jogadorId);
   sala.jogadas.delete(jogadorId);
   sala.mesa = sala.mesa.filter((m) => m.jogadorId !== jogadorId);
-  anunciar(sala, aviso, "aviso");
+  anunciar(sala, chave, { nome: jogador.nome }, "aviso");
 
   if (sala.donoId === jogadorId) {
     const proximo = jogadoresAtivos(sala)[0] || sala.jogadores[0];
     sala.donoId = proximo ? proximo.id : null;
-    if (proximo) anunciar(sala, `${proximo.nome} agora e o dono da sala.`, "info");
+    if (proximo) anunciar(sala, "novoDono", { nome: proximo.nome }, "info");
   }
   resolverAusencia(sala);
 }
@@ -383,14 +388,16 @@ function ligarSockets() {
     }
 
     // ---- criar sala -----------------------------------------------------
-    socket.on("criarSala", ({ nome }, resposta) => {
+    socket.on("criarSala", ({ nome, idioma }, resposta) => {
       const apelido = limparNome(nome);
-      if (!apelido) return resposta({ ok: false, erro: "Escolhe um apelido." });
+      if (!apelido) return resposta({ ok: false, erro: "apelido" });
 
       let codigo;
       do { codigo = codigoDeSala(); } while (salas.has(codigo));
 
       const sala = novaSala(codigo);
+      // A sala ja nasce no idioma de quem criou
+      if (IDIOMAS.includes(idioma)) sala.config.idioma = idioma;
       salas.set(codigo, sala);
 
       const jogador = novoJogador(apelido);
@@ -401,7 +408,7 @@ function ligarSockets() {
       socket.data.salaCodigo = codigo;
       socket.data.jogadorId = jogador.id;
 
-      anunciar(sala, `${apelido} criou a sala.`, "info");
+      anunciar(sala, "criouSala", { nome: apelido }, "info");
       resposta({ ok: true, codigo, token: jogador.id });
       enviarEstado(sala);
     });
@@ -410,7 +417,7 @@ function ligarSockets() {
     socket.on("entrarSala", ({ codigo, nome, token }, resposta) => {
       const cod = String(codigo || "").toUpperCase().trim();
       const sala = salas.get(cod);
-      if (!sala) return resposta({ ok: false, erro: "Sala nao encontrada." });
+      if (!sala) return resposta({ ok: false, erro: "salaNaoEncontrada" });
 
       // Reconexao: o navegador guardou o token da sessao anterior
       const antigo = token ? acharJogador(sala, token) : null;
@@ -421,18 +428,18 @@ function ligarSockets() {
         socket.join(cod);
         socket.data.salaCodigo = cod;
         socket.data.jogadorId = antigo.id;
-        anunciar(sala, `${antigo.nome} voltou.`, "info");
+        anunciar(sala, "voltou", { nome: antigo.nome }, "info");
         resposta({ ok: true, codigo: cod, token: antigo.id });
         enviarEstado(sala);
         return;
       }
 
       const apelido = limparNome(nome);
-      if (!apelido) return resposta({ ok: false, erro: "Escolhe um apelido." });
+      if (!apelido) return resposta({ ok: false, erro: "apelido" });
       if (sala.jogadores.length >= MAX_JOGADORES)
-        return resposta({ ok: false, erro: "Sala cheia." });
+        return resposta({ ok: false, erro: "salaCheia" });
       if (sala.jogadores.some((j) => j.nome.toLowerCase() === apelido.toLowerCase()))
-        return resposta({ ok: false, erro: "Ja tem alguem com esse apelido." });
+        return resposta({ ok: false, erro: "apelidoRepetido" });
 
       const jogador = novoJogador(apelido);
       // Se a partida ja comecou, entra no meio dela com a mao cheia
@@ -444,7 +451,7 @@ function ligarSockets() {
       socket.data.salaCodigo = cod;
       socket.data.jogadorId = jogador.id;
 
-      anunciar(sala, `${apelido} entrou na sala.`, "info");
+      anunciar(sala, "entrou", { nome: apelido }, "info");
       resposta({ ok: true, codigo: cod, token: jogador.id });
       enviarEstado(sala);
     });
@@ -458,6 +465,7 @@ function ligarSockets() {
 
       const rodadas = Number(novaConfig.totalDeRodadas);
       const tempo = Number(novaConfig.segundosParaJogar);
+      if (IDIOMAS.includes(novaConfig.idioma)) sala.config.idioma = novaConfig.idioma;
       if (rodadas >= 0 && rodadas <= 200) sala.config.totalDeRodadas = Math.floor(rodadas);
       if (tempo === 0 || (tempo >= 15 && tempo <= 300))
         sala.config.segundosParaJogar = Math.floor(tempo);
@@ -509,7 +517,7 @@ function ligarSockets() {
       sala.mesa = [];
       sala.rodada = 0;
       for (const j of sala.jogadores) j.mao = [];
-      anunciar(sala, "Voltamos pro lobby. Bora de novo.", "info");
+      anunciar(sala, "voltamosLobby", {}, "info");
       enviarEstado(sala);
     });
 
@@ -522,7 +530,7 @@ function ligarSockets() {
       const alvo = acharJogador(sala, jogadorId);
       if (!alvo) return;
       if (alvo.socketId) io.to(alvo.socketId).emit("expulso");
-      removerJogador(sala, alvo.id, `${alvo.nome} foi removido da sala.`);
+      removerJogador(sala, alvo.id, "removido");
       enviarEstado(sala);
     });
 
@@ -531,7 +539,7 @@ function ligarSockets() {
       const sala = minhaSala();
       const eu = euMesmo(sala);
       if (!sala || !eu) return;
-      removerJogador(sala, eu.id, `${eu.nome} saiu da sala.`);
+      removerJogador(sala, eu.id, "saiu");
       socket.leave(sala.codigo);
       socket.data.salaCodigo = null;
       socket.data.jogadorId = null;
@@ -545,7 +553,7 @@ function ligarSockets() {
 
       eu.online = false;
       eu.socketId = null;
-      anunciar(sala, `${eu.nome} caiu (pode voltar pelo mesmo codigo).`, "aviso");
+      anunciar(sala, "caiu", { nome: eu.nome }, "aviso");
       resolverAusencia(sala);
       enviarEstado(sala);
 
