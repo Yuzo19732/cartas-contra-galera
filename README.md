@@ -61,18 +61,57 @@ Tem tambem `npm run build:portatil`, que gera um .exe unico que roda sem instala
 
 Precisa de 2 pessoas ou mais.
 
-### Se a galera nao estiver na mesma casa
+## Jogando com gente de outra cidade
 
-O endereco `192.168.x.x` so funciona pra quem esta no mesmo Wi-Fi. Pra jogar com
-gente de outra cidade, quem hospeda precisa de um endereco publico. O jeito mais
-facil e abrir um tunel:
+O endereco `192.168.x.x` so funciona pra quem esta no mesmo Wi-Fi. Pra valer na
+internet tem dois caminhos.
+
+### Caminho 1: hospedar o jogo (recomendado)
+
+O jogo fica no ar 24 horas num link fixo, sem depender do seu PC ligado. E os
+amigos podem entrar pelo **navegador do celular** tambem, sem instalar nada.
+
+O projeto ja vem com o `render.yaml` pronto, entao o [Render](https://render.com)
+preenche tudo sozinho:
+
+1. Cria um repositorio no GitHub e sobe este projeto:
+   ```bash
+   git remote add origin https://github.com/SEU-USUARIO/cartas-contra-galera.git
+   git push -u origin master
+   ```
+2. Entra no Render, **New > Blueprint**, e aponta pro repositorio.
+3. Ele le o `render.yaml`, cria o servico e te da um endereco tipo
+   `https://cartas-contra-galera.onrender.com`.
+
+Pronto: esse link e o jogo. Quem tem o app tambem pode entrar nele — e so colar o
+endereco no campo "Endereco de quem esta hospedando".
+
+Duas coisas do plano gratuito que valem saber:
+
+- Se ninguem usar por 15 minutos, ele **hiberna**. A primeira pessoa a abrir espera
+  uns 50 segundos ele acordar. Depois disso fica normal.
+- As salas ficam **na memoria**. Se o servico hibernar ou reiniciar, as salas abertas
+  somem. Durante a partida ele nao hiberna, entao na pratica so atrapalha se voces
+  pararem no meio e voltarem muito tempo depois.
+
+### Caminho 2: tunel (na hora, sem cadastro)
+
+Abre um endereco publico apontando pro servidor que ja esta rodando no seu PC.
+Bom pra jogar agora, hoje. Em dois terminais:
 
 ```bash
-npx localtunnel --port 3000
+npm start
 ```
 
-Isso devolve um endereco publico que os amigos colam no lugar do IP.
-(Uma alternativa mais estavel e o Cloudflare Tunnel, que da um endereco fixo.)
+```bash
+npm run tunel
+```
+
+O segundo comando cospe um endereco tipo `https://algo-aleatorio.trycloudflare.com`.
+Os amigos colam ele no campo de endereco do app (ou abrem direto no navegador).
+
+O endereco muda toda vez que voce liga, e so funciona enquanto seu PC estiver com o
+jogo aberto.
 
 ## O baralho
 

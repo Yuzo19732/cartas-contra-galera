@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "app": "electron .",
+    "tunel": "cloudflared tunnel --url http://localhost:3000",
     "build": "electron-builder --win",
     "build:portatil": "electron-builder --win portable"
   },
