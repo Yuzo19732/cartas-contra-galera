@@ -152,10 +152,10 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .so-mobile { display: none; }
 
 /* ---------------- layout ---------------- */
-.corpo { display: flex; align-items: flex-start; gap: 18px; padding: 18px; max-width: 1400px; margin: 0 auto; }
+.corpo { display: flex; align-items: flex-start; gap: 18px; padding: 18px; max-width: 1680px; margin: 0 auto; }
 
 .painel {
-  width: 280px; flex-shrink: 0;
+  width: 300px; flex-shrink: 0;
   background: var(--painel); border: 1px solid var(--borda);
   border-radius: 6px; padding: 16px;
   position: sticky; top: 78px;
@@ -196,7 +196,21 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .feed .m.chat { color: var(--texto); font-weight: 700; }
 
 .mesa-area { flex: 1; min-width: 0; }
-.area { background: var(--painel); border: 1px solid var(--borda); border-radius: 6px; padding: 24px; }
+.area { background: var(--painel); border: 1px solid var(--borda); border-radius: 6px; padding: 26px; }
+
+/* A area de jogo ocupa a altura da tela: a frase fica em cima e a mao
+   ancorada embaixo, entao o espaco no meio vira mesa em vez de buraco. */
+#area-jogo {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 132px);
+}
+/* display: flex passa por cima do atributo hidden, entao precisa ser explicito */
+#area-jogo[hidden], #area-mao[hidden], .area[hidden] { display: none; }
+#area-mao { margin-top: auto; }
+/* Na revelacao a mao some (voce ja jogou) e as respostas ficam centralizadas,
+   assim nao sobra espaco morto nem precisa rolar a pagina. */
+#area-jogo.revelando #mesa { margin-top: auto; margin-bottom: auto; }
 .area h2 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 10px; }
 .explica { color: var(--texto-fraco); font-size: 14px; margin: 10px 0; line-height: 1.55; font-weight: 400; }
 .explica b { color: var(--branco); font-weight: 700; letter-spacing: .15em; }
@@ -215,7 +229,8 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
    =========================================================== */
 .carta {
   position: relative;
-  aspect-ratio: 1 / 1;
+  /* proporcao de carta de baralho (5x7), nao quadrado */
+  aspect-ratio: 5 / 7;
   border-radius: var(--raio-carta);
   padding: 14px;
   font-size: 15px;
@@ -231,7 +246,12 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .carta.branca { background: var(--branco); color: var(--preto); }
 
 .carta.grande {
-  width: 300px; flex-shrink: 0; font-size: 21px; padding: 22px;
+  /* a altura acompanha a tela pra caber sem rolar; a largura sai da proporcao */
+  height: clamp(300px, 42vh, 440px);
+  width: auto;
+  flex-shrink: 0;
+  font-size: clamp(20px, 2.2vh, 27px);
+  padding: 24px;
   /* levemente torta, como uma carta largada na mesa */
   transform: rotate(-1.4deg);
   box-shadow: 0 18px 40px rgba(0, 0, 0, .6), 0 3px 8px rgba(0, 0, 0, .5);
@@ -260,44 +280,52 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .carta.branca .pick-num span { color: var(--branco); }
 
 /* tabuleiro */
-.tabuleiro { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
-.instrucao { flex: 1; min-width: 210px; color: var(--texto-fraco); font-size: 15px; line-height: 1.6; padding-top: 4px; font-weight: 400; }
+/* carta preta e instrucao centralizadas como um bloco so, senao
+   sobra um vazio enorme do lado direito da tela */
+.tabuleiro {
+  display: flex; gap: 34px;
+  align-items: center; justify-content: center;
+  flex-wrap: wrap;
+}
+.instrucao { flex: 0 1 440px; min-width: 240px; color: var(--texto-fraco); font-size: 19px; line-height: 1.65; padding-top: 8px; font-weight: 400; }
 .instrucao b { color: var(--branco); font-weight: 700; }
-.esperando { color: #5a5a5a; font-size: 13px; }
+.esperando { color: #6e6e6e; font-size: 15px; }
 
 /* ===========================================================
    A MAO - as cartas abertas em leque, como se estivessem
    sendo seguradas. Cada carta ganha a posicao pelo JS, em
    --x (deslocamento), --y (altura no arco) e --r (giro).
    =========================================================== */
-#area-mao { margin-top: 30px; }
-.titulo-mao { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
-.titulo-mao h3 { font-size: 10px; text-transform: uppercase; letter-spacing: .16em; color: var(--texto-fraco); }
-.dica-selecao { font-size: 11px; color: var(--branco); text-transform: uppercase; letter-spacing: .1em; }
+#area-mao { margin-top: 12px; }
+.titulo-mao { display: flex; align-items: baseline; justify-content: center; gap: 12px; margin-bottom: 4px; }
+.titulo-mao h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .16em; color: var(--texto-fraco); }
+.dica-selecao { font-size: 13px; color: var(--branco); text-transform: uppercase; letter-spacing: .1em; }
 
 .mao {
-  --larg: 172px;
+  --larg: clamp(132px, 17vh, 200px);
+  /* quanto a carta e mais alta que larga (7/5) */
+  --alt-fator: 1.4;
   /* onde fica o eixo do giro, em alturas de carta contadas do topo.
      Quanto maior, mais aberto o leque - e mais pra fora as pontas vao. */
-  --pivo: 1.9;
+  --pivo: 1.5;
   /* abertura maxima do leque, em graus (da ponta esquerda a direita) */
   --giro: 26;
   position: relative;
-  height: 268px;
+  height: calc(var(--larg) * var(--alt-fator) + 60px);
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  margin-top: 10px;
+  margin-top: 4px;
   /* chao de luz atras do leque, so pra dar profundidade */
   background: radial-gradient(60% 90% at 50% 100%, rgba(255, 255, 255, .07) 0%, transparent 70%);
 }
 
 .mao .carta {
   position: absolute;
-  bottom: 6px;
+  bottom: 20px;
   width: var(--larg);
-  font-size: 14px;
-  padding: 13px;
+  font-size: 16px;
+  padding: 15px;
   cursor: pointer;
   transform-origin: 50% calc(var(--pivo) * 100%);
   transform: translateX(var(--x, 0)) translateY(var(--y, 0)) rotate(var(--r, 0deg));
@@ -338,11 +366,13 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 }
 
 /* mesa da revelacao: cada resposta e a frase ja montada numa carta preta */
-.mesa { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin-top: 30px; }
+/* flex em vez de grid: no grid as cartas esticavam pra preencher a linha e,
+   com a proporcao de baralho, viravam gigantes quando tinha pouca gente. */
+.mesa { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 24px; }
 .mesa:empty { display: none; }
 
 .jogada {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 10px; align-items: center;
   /* entram uma depois da outra, como cartas sendo viradas na mesa */
   animation: virar .38s cubic-bezier(.2, .8, .3, 1) backwards;
 }
@@ -352,7 +382,10 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 }
 
 .carta.resposta {
-  font-size: 16px;
+  /* altura manda, largura sai da proporcao - assim cabe na tela */
+  height: clamp(200px, 31vh, 360px);
+  width: auto;
+  font-size: clamp(14px, 1.7vh, 19px);
   box-shadow: 0 14px 30px rgba(0, 0, 0, .55), 0 2px 5px rgba(0, 0, 0, .4);
   transition: transform .18s;
 }
@@ -378,7 +411,8 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 body.modo-app .so-no-app { display: block; }
 body.modo-app .so-no-navegador { display: none; }
 
-.acoes { margin-top: 22px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.acoes { margin-top: 18px; display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.acoes .botao { padding: 15px 26px; font-size: 17px; }
 
 /* fim */
 .placar-final { list-style: none; margin: 20px 0; display: flex; flex-direction: column; gap: 6px; }
@@ -410,8 +444,30 @@ body.modo-app .so-no-navegador { display: none; }
   .area { padding: 16px; }
   .carta.grande { width: 100%; max-width: 340px; font-size: 19px; }
   .tabuleiro { flex-direction: column; gap: 14px; }
-  /* no celular o leque abre menos, senao as pontas saem da tela */
-  .mao { --larg: 118px; --pivo: 1.5; --giro: 16; height: 200px; }
+  /* No celular o leque nao funciona: sem mouse nao da pra passar por cima
+     pra ler, e sobrava so uma tirinha de cada carta. Vira uma faixa que
+     desliza com o dedo, com as cartas inteiras. */
+  .mao {
+    --larg: 148px;
+    height: auto;
+    display: flex;
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 12px 4px 18px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    background: none;
+  }
+  .mao .carta {
+    position: static;
+    transform: none !important;
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    font-size: 14px;
+  }
+  .mao .carta.selecionada { transform: translateY(-10px) !important; }
+  .mao .carta:hover { box-shadow: 0 10px 22px rgba(0, 0, 0, .55); }
   .mao .carta { font-size: 12px; padding: 10px; }
   .mao .carta:hover {
     transform: translateX(var(--x, 0)) translateY(calc(var(--y, 0px) - 38px)) rotate(0deg) scale(1.06);

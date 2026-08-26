@@ -387,10 +387,16 @@ function desenharJogo() {
     `<div class="corpo-carta">${textoDaPreta(preta, null)}</div>` +
     rodapeCarta(preta ? preta.pick : 1);
 
+  // Na revelacao a mao sai da tela: voce ja jogou, e deixar ela ali so
+  // empurrava as respostas pra baixo e obrigava a rolar a pagina.
+  const revelando = estado.fase === "mostrando";
+  $("area-jogo").classList.toggle("revelando", revelando);
+  $("area-mao").hidden = revelando;
+
   desenharInstrucao();
   desenharMesa();
   desenharAcoes();
-  desenharMao();
+  if (!revelando) desenharMao();
   atualizarCronometro();
 }
 
@@ -501,8 +507,10 @@ function posicionarMao() {
 
   // Largura da carta e eixo do giro vem do CSS, entao o leque se ajusta no celular
   const estilo = getComputedStyle(mao);
-  const larguraCarta = parseFloat(estilo.getPropertyValue("--larg")) || 172;
-  const pivo = parseFloat(estilo.getPropertyValue("--pivo")) || 1.9;
+  const larguraCarta = parseFloat(estilo.getPropertyValue("--larg")) || 194;
+  const fatorAltura = parseFloat(estilo.getPropertyValue("--alt-fator")) || 1.4;
+  const alturaCarta = larguraCarta * fatorAltura;
+  const pivo = parseFloat(estilo.getPropertyValue("--pivo")) || 1.5;
   const giroMaximo = parseFloat(estilo.getPropertyValue("--giro")) || 26;
 
   const giroTotal = Math.min(giroMaximo, total * 3.4); // com poucas cartas, abre menos
@@ -513,20 +521,21 @@ function posicionarMao() {
 
   // O eixo do giro fica abaixo da carta, entao girar tambem joga a carta pro lado.
   // Sem contar isso, as pontas do leque vazam pra fora da tela.
-  const distanciaAoEixo = (pivo - 0.5) * larguraCarta; // cartas sao quadradas
+  const distanciaAoEixo = (pivo - 0.5) * alturaCarta;
   const empurraoDoGiro = distanciaAoEixo * Math.sin(rad);
 
   // Carta girada tambem ocupa mais largura que ela mesma (os cantos saem pra fora)
-  const larguraGirada = larguraCarta * Math.cos(rad) + larguraCarta * Math.sin(rad);
+  const larguraGirada = larguraCarta * Math.cos(rad) + alturaCarta * Math.sin(rad);
 
   const espacoUtil = Math.max(0, mao.clientWidth - larguraGirada - 2 * empurraoDoGiro - 8);
-  const passo = total > 1 ? Math.max(14, Math.min(66, espacoUtil / (total - 1))) : 0;
+  const passo = total > 1 ? Math.max(14, Math.min(78, espacoUtil / (total - 1))) : 0;
 
   cartas.forEach((carta, i) => {
     const desvio = i - meio;                       // negativo a esquerda, positivo a direita
     const proporcao = meio === 0 ? 0 : desvio / meio;
     const giro = proporcao * (giroTotal / 2);
-    const altura = Math.pow(Math.abs(proporcao), 2) * 26; // pontas descem, meio sobe
+    // as pontas ficam na linha de base e o meio sobe, senao o leque vaza por baixo
+    const altura = (Math.pow(Math.abs(proporcao), 2) - 1) * 30;
 
     carta.style.setProperty("--x", desvio * passo + "px");
     carta.style.setProperty("--y", altura + "px");
