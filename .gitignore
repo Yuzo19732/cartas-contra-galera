@@ -1,0 +1,11 @@
+node_modules/
+instalador/
+
+# A Neue Helvetica e uma fonte COMERCIAL (Linotype/Monotype).
+# Ela fica so na sua maquina, pro app que voce manda pros amigos.
+# Num site publico ela nao pode ir junto, senao e distribuicao sem licenca.
+# Sem o arquivo, o CSS cai sozinho em Helvetica/Arial, que e praticamente igual.
+public/fontes/
+
+.DS_Store
+Thumbs.db

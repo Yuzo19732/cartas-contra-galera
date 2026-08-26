@@ -1,0 +1,17 @@
+# Receita de deploy pro Render (render.com).
+# Com este arquivo no repositorio, o Render ja preenche tudo sozinho:
+# e so apontar pro repo e clicar em criar.
+#
+# --omit=dev pula o Electron na instalacao. O servidor online nao precisa dele,
+# e sem isso o deploy baixaria uns 300 MB a toa.
+
+services:
+  - type: web
+    name: cartas-contra-galera
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

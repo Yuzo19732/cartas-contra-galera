@@ -1,0 +1,48 @@
+{
+  "name": "cartas-contra-galera",
+  "version": "2.0.0",
+  "description": "Cards Against Humanity online pra jogar com os amigos",
+  "author": "Yuzo",
+  "license": "CC-BY-NC-SA-2.0",
+  "main": "electron/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "app": "electron .",
+    "build": "electron-builder --win",
+    "build:portatil": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.yuzo.cartascontragalera",
+    "productName": "Cartas Contra a Galera",
+    "files": [
+      "electron/**/*",
+      "public/**/*",
+      "server.js",
+      "cartas.js",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Cartas Contra a Galera"
+    },
+    "directories": {
+      "output": "instalador"
+    }
+  }
+}

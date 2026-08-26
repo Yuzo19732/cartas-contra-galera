@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cartas Contra a Galera</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><rect x='7' y='6' width='14' height='20' rx='2' fill='%23fff'/><rect x='12' y='9' width='14' height='20' rx='2' fill='%23fff' stroke='%23000' stroke-width='2'/></svg>" />
+</head>
+<body>
+
+<!-- ===================== TELA DE ENTRADA ===================== -->
+<section id="tela-entrada" class="tela ativa">
+  <div class="entrada-caixa">
+    <div class="logo">
+      <span class="logo-carta preta">Cartas contra</span>
+      <span class="logo-carta branca">a galera</span>
+    </div>
+    <p class="subtitulo">Um jogo pra jogar com os amigos. Quanto pior a resposta, melhor.</p>
+
+    <label class="campo">
+      <span>Seu apelido</span>
+      <input id="in-nome" maxlength="16" placeholder="Como te chamam?" autocomplete="off" />
+    </label>
+
+    <button id="btn-criar" class="botao principal grande">Criar uma sala nova</button>
+    <p class="rodape-dica so-no-app">Voce vira o host: a partida roda no seu PC.</p>
+
+    <div class="ou"><span>ou entrar numa sala</span></div>
+
+    <!-- so aparece dentro do app: o endereco de quem esta hospedando -->
+    <label class="campo so-no-app">
+      <span>Endereco de quem esta hospedando</span>
+      <input id="in-endereco" placeholder="192.168.0.10:3000" autocomplete="off" />
+    </label>
+
+    <div class="linha">
+      <input id="in-codigo" maxlength="4" placeholder="CODIGO" class="codigo-input" autocomplete="off" />
+      <button id="btn-entrar" class="botao">Entrar</button>
+    </div>
+
+    <p id="erro-entrada" class="erro"></p>
+    <p class="rodape-dica so-no-navegador">2 pessoas ou mais. Funciona no celular tambem.</p>
+
+    <p class="creditos">
+      Cartas do baralho oficial de <b>Cards Against Humanity</b>, usadas sob a licenca
+      <a href="https://creativecommons.org/licenses/by-nc-sa/2.0/" target="_blank" rel="noopener">Creative Commons BY-NC-SA 2.0</a>.
+      Projeto sem fins lucrativos.
+    </p>
+  </div>
+</section>
+
+<!-- ===================== TELA DO JOGO ===================== -->
+<section id="tela-jogo" class="tela">
+
+  <header class="topo">
+    <button id="btn-codigo" class="chip" title="Clique para copiar o convite">
+      Sala <b id="lbl-codigo">----</b>
+    </button>
+    <div class="chip" id="lbl-rodada">Lobby</div>
+    <div class="chip cronometro" id="lbl-tempo" hidden><b>--</b></div>
+    <div class="espaco"></div>
+    <button id="btn-painel" class="chip so-mobile">Jogadores</button>
+    <button id="btn-sair" class="chip">Sair</button>
+  </header>
+
+  <div class="corpo">
+
+    <!-- ---------- coluna lateral: jogadores + feed ---------- -->
+    <aside id="painel" class="painel">
+      <h3>Jogadores</h3>
+      <ul id="lista-jogadores" class="jogadores"></ul>
+
+      <h3>Role</h3>
+      <div id="feed" class="feed"></div>
+      <form id="form-chat" class="form-chat">
+        <input id="in-chat" placeholder="Falar alguma coisa..." maxlength="200" autocomplete="off" />
+        <button class="botao pequeno">Enviar</button>
+      </form>
+    </aside>
+
+    <!-- ---------- area principal ---------- -->
+    <main class="mesa-area">
+
+      <!-- LOBBY -->
+      <div id="area-lobby" class="area">
+        <h2>Sala montada</h2>
+        <p class="explica">
+          Manda o codigo <b id="lbl-codigo2">----</b> pra galera.
+          Precisa de pelo menos 2 pessoas.
+        </p>
+        <button id="btn-convite" class="botao">Copiar convite</button>
+
+        <div id="enderecos-host" class="config" hidden></div>
+
+        <div id="config-dono" class="config" hidden>
+          <h3>Configuracoes</h3>
+          <label class="campo linha-campo">
+            <span>Quantas rodadas</span>
+            <input id="in-rodadas" type="number" min="0" max="200" value="20" />
+          </label>
+          <p class="nota-campo">0 = o jogo nunca acaba, so vai continuando.</p>
+          <label class="campo linha-campo">
+            <span>Tempo por rodada (seg)</span>
+            <input id="in-tempo" type="number" min="0" max="300" step="5" value="90" />
+          </label>
+          <p class="nota-campo">0 = sem cronometro.</p>
+        </div>
+
+        <div id="config-visita" class="config leve">
+          <p>Rodadas: <b id="lbl-rodadas">20</b> &nbsp;/&nbsp; Tempo: <b id="lbl-tempo-cfg">90s</b></p>
+        </div>
+
+        <button id="btn-comecar" class="botao principal grande" disabled>Comecar a partida</button>
+        <p id="aviso-lobby" class="explica"></p>
+      </div>
+
+      <!-- JOGO -->
+      <div id="area-jogo" class="area" hidden>
+        <div class="tabuleiro">
+          <div id="carta-preta" class="carta preta grande"></div>
+          <div class="instrucao" id="instrucao"></div>
+        </div>
+
+        <div id="mesa" class="mesa"></div>
+
+        <div id="acoes" class="acoes"></div>
+
+        <div id="area-mao">
+          <div class="titulo-mao">
+            <h3>Sua mao</h3>
+            <span id="contador-selecao" class="dica-selecao"></span>
+          </div>
+          <div id="mao" class="mao"></div>
+        </div>
+      </div>
+
+      <!-- FIM -->
+      <div id="area-fim" class="area" hidden>
+        <h2>Fim da partida</h2>
+        <p class="explica">Foram <b id="lbl-fim-rodadas">0</b> rodadas. Bora de novo?</p>
+        <button id="btn-reiniciar" class="botao principal">Jogar de novo</button>
+      </div>
+
+    </main>
+  </div>
+</section>
+
+<div id="aviso" class="aviso"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="client.js"></script>
+</body>
+</html>
