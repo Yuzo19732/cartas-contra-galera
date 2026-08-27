@@ -12,9 +12,15 @@ https://creativecommons.org/licenses/by-nc-sa/2.0/
 POR QUE ESSA LICENCA
 --------------------
 
-O conteudo das cartas (o arquivo cartas.js) vem do baralho oficial de
-Cards Against Humanity, versao 2.4, transcrito do PDF de impressao caseira
-publicado pelos proprios criadores em https://www.cardsagainsthumanity.com/
+O conteudo das cartas vem do baralho oficial de Cards Against Humanity,
+versao 2.4, transcrito do PDF de impressao caseira publicado pelos proprios
+criadores em https://www.cardsagainsthumanity.com/
+
+  cartas.js     as 600 cartas originais, em ingles
+  cartas-pt.js  as mesmas 600 traduzidas pro portugues
+
+A traducao e um trabalho derivado, o que a licenca permite expressamente
+desde que o credito seja dado e nada seja vendido.
 
 Cards Against Humanity e licenciado sob CC BY-NC-SA 2.0. Como este projeto usa
 esse conteudo, a clausula ShareAlike obriga que ele seja distribuido sob a

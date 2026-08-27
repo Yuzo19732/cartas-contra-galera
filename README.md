@@ -113,19 +113,27 @@ Os amigos colam ele no campo de endereco do app (ou abrem direto no navegador).
 O endereco muda toda vez que voce liga, e so funciona enquanto seu PC estiver com o
 jogo aberto.
 
-## O baralho
+## Os baralhos
 
-O `cartas.js` tem o baralho oficial completo, transcrito do PDF de impressao caseira
-da propria Cards Against Humanity (versao 2.4):
+O jogo tem o baralho oficial completo (versao 2.4), transcrito do PDF de impressao
+caseira da propria Cards Against Humanity, em dois idiomas:
 
-- **100 cartas pretas** (11 sao PICK 2 e 1 e PICK 3)
-- **500 cartas brancas**
+- `cartas.js` — as 600 cartas em ingles, como no original
+- `cartas-pt.js` — as mesmas 600 traduzidas pro portugues, na mesma ordem
 
-As cartas estao em ingles, como no original.
+Cada um tem **100 cartas pretas** (11 sao PICK 2 e 1 e PICK 3) e **500 brancas**.
+
+Quem escolhe o idioma e o dono da sala, no lobby, e vale pra sala toda: as cartas
+e os textos da tela mudam pra todo mundo junto.
+
+Algumas cartas citam marcas e programas de TV que nao existem aqui. Nesses casos a
+traducao usa a descricao ("a lanchonete", "o programa da tarde"), senao a piada nao
+fecharia pra quem esta lendo.
 
 ### Adicionar suas proprias cartas
 
-Abre `cartas.js` e escreve mais linhas nas listas `PRETAS` e `BRANCAS`.
+Abre `cartas.js` (ingles) ou `cartas-pt.js` (portugues) e escreve mais linhas nas
+listas `PRETAS` e `BRANCAS`.
 Nas pretas, use `___` pro espaco em branco (pode usar dois ou tres na mesma frase —
 o jogo conta sozinho e vira PICK 2 / PICK 3).
 
@@ -144,11 +152,14 @@ cartas-contra-galera/
     main.js        abre a janela e sobe o servidor do jogo junto
     preload.js     conta pra tela em que porta o servidor subiu
   server.js        toda a logica do jogo (salas, rodadas, cartas)
-  cartas.js        o baralho oficial
+  baralhos.js      escolhe o baralho pelo idioma da sala
+  cartas.js        o baralho oficial em ingles
+  cartas-pt.js     o baralho oficial traduzido
   public/
     index.html     as telas
     style.css      o visual
     client.js      o que roda dentro da janela
+    idiomas.js     os textos da tela em portugues e ingles
     fontes/        Neue Helvetica 75 Bold
   instalador/      sai daqui o instalador depois do build
 ```
