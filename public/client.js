@@ -470,9 +470,9 @@ function desenharInstrucao() {
     el.innerHTML = estado.jaJoguei
       ? escapar(t("jogo.jaJoguei")) + "<br>" + espera
       : t("jogo.escolha", { n: estado.cartaPreta.pick }) + "<br>" + espera;
-  } else if (estado.fase === "mostrando") {
-    el.innerHTML = escapar(t("jogo.revelacao")) + "<br>" +
-      `<span class="esperando">${escapar(t("jogo.revelacaoNota"))}</span>`;
+  } else {
+    // Na revelacao nao tem instrucao: as respostas falam por si.
+    el.innerHTML = "";
   }
 }
 

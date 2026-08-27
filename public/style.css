@@ -224,11 +224,14 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 #area-mao { margin-top: auto; }
 /* Na revelacao a mao some (voce ja jogou) e as respostas ficam centralizadas,
    assim nao sobra espaco morto nem precisa rolar a pagina. */
-#area-jogo.revelando #mesa { margin-top: auto; margin-bottom: auto; }
-/* Na revelacao a carta preta sai: cada resposta ja mostra a frase completa,
-   entao ela so repetia o texto e a sombra dela caia em cima das respostas. */
-#area-jogo.revelando #carta-preta { display: none; }
-#area-jogo.revelando .tabuleiro { gap: 0; }
+/* Centraliza o grupo inteiro (respostas + botao) na altura da area.
+   Com margin auto no #mesa o botao ficava colado no rodape. */
+#area-jogo.revelando { justify-content: center; }
+#area-jogo.revelando #mesa { margin-top: 0; }
+/* Na revelacao a faixa de cima sai inteira. A carta preta so repetia o texto
+   (cada resposta ja mostra a frase completa) e o texto de instrucao deixava
+   uma tira vazia no topo. Sem ela, as respostas ficam centralizadas. */
+#area-jogo.revelando .tabuleiro { display: none; }
 .area h2 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 10px; }
 .explica { color: var(--texto-fraco); font-size: 14px; margin: 10px 0; line-height: 1.55; font-weight: 400; }
 .explica b { color: var(--branco); font-weight: 700; letter-spacing: .15em; }
