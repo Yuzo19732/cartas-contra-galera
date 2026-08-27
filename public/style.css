@@ -380,12 +380,10 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
   box-shadow: 0 28px 46px rgba(0, 0, 0, .72), 0 0 0 6px rgba(255, 255, 255, .1);
 }
 
-.mao .slot.bloqueada { cursor: default; opacity: .45; }
-.mao .slot.bloqueada:hover { z-index: auto !important; }
-.mao .slot.bloqueada:hover .carta {
-  transform: none;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, .55);
-}
+/* Depois que voce ja jogou, as cartas continuam normais - so nao da mais pra
+   escolher. Antes elas ficavam apagadas e, sobrepostas no leque, viravam um
+   borrao ilegivel. O hover continua levantando pra voce ler o que sobrou. */
+.mao .slot.bloqueada { cursor: default; }
 
 
 .ordem {
@@ -453,6 +451,35 @@ body.modo-app .so-no-navegador { display: none; }
 }
 .placar-final li:first-child { border-color: var(--borda-forte); }
 .placar-final .pts { color: var(--branco); font-variant-numeric: tabular-nums; }
+
+/* caixa de pergunta do jogo (no lugar do confirm/alert do navegador) */
+.dialogo {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(3px);
+  animation: surgir .14s ease;
+}
+.dialogo[hidden] { display: none; }
+@keyframes surgir { from { opacity: 0 } to { opacity: 1 } }
+
+.dialogo-caixa {
+  width: min(440px, calc(100vw - 40px));
+  background: var(--painel);
+  border: 1px solid var(--borda-forte);
+  border-radius: 8px;
+  padding: 26px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .7);
+}
+.dialogo-msg { font-size: 18px; line-height: 1.4; margin-bottom: 20px; }
+.dialogo-texto {
+  font-size: 14px; font-weight: 400; word-break: break-all;
+  background: var(--preto); border: 1px solid var(--borda);
+  border-radius: 4px; padding: 12px; margin-bottom: 20px;
+  user-select: all; color: var(--texto-fraco);
+}
+.dialogo-botoes { display: flex; gap: 10px; justify-content: flex-end; }
+.dialogo-botoes .botao { min-width: 110px; }
 
 /* aviso */
 .aviso {

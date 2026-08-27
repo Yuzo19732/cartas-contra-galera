@@ -79,6 +79,50 @@ function aviso(msg) {
   aviso.temp = setTimeout(() => el.classList.remove("aparece"), 2200);
 }
 
+// ---------------------------------------------------------------------------
+// Caixa de pergunta do proprio jogo, no lugar do confirm/alert do navegador.
+// Devolve uma promessa: true se clicou no OK, false se cancelou.
+//   await perguntar(t("aviso.sair"))            -> pergunta com OK e Cancelar
+//   await perguntar(msg, { soOk: true })        -> so avisa
+//   await perguntar(msg, { texto: "algo" })     -> mostra um texto pra copiar
+// ---------------------------------------------------------------------------
+function perguntar(mensagem, opcoes = {}) {
+  const caixa = $("dialogo");
+  const btnOk = $("dialogo-ok");
+  const btnCancelar = $("dialogo-cancelar");
+
+  $("dialogo-msg").textContent = mensagem;
+  $("dialogo-texto").textContent = opcoes.texto || "";
+  $("dialogo-texto").hidden = !opcoes.texto;
+
+  btnOk.textContent = opcoes.textoOk || t("aviso.ok");
+  btnCancelar.textContent = t("aviso.cancelar");
+  btnCancelar.hidden = !!opcoes.soOk;
+
+  caixa.hidden = false;
+  btnOk.focus();
+
+  return new Promise((resolver) => {
+    function fechar(resposta) {
+      caixa.hidden = true;
+      btnOk.onclick = null;
+      btnCancelar.onclick = null;
+      caixa.onclick = null;
+      document.removeEventListener("keydown", naTecla);
+      resolver(resposta);
+    }
+    function naTecla(e) {
+      if (e.key === "Escape") fechar(false);
+      if (e.key === "Enter") fechar(true);
+    }
+    btnOk.onclick = () => fechar(true);
+    btnCancelar.onclick = () => fechar(false);
+    // clicar no fundo escuro tambem fecha
+    caixa.onclick = (e) => { if (e.target === caixa) fechar(false); };
+    document.addEventListener("keydown", naTecla);
+  });
+}
+
 function salvarSessao(codigo, token) {
   localStorage.setItem("ccg_sessao", JSON.stringify({ codigo, token, endereco: enderecoAtual }));
 }
@@ -172,9 +216,9 @@ function conectar(endereco) {
     desenhar();
   });
 
-  socket.on("expulso", () => {
+  socket.on("expulso", async () => {
     limparSessao();
-    alert(t("aviso.expulso"));
+    await perguntar(t("aviso.expulso"), { soOk: true });
     location.reload();
   });
 
@@ -280,7 +324,8 @@ async function copiar(texto) {
     await navigator.clipboard.writeText(texto);
     aviso(t("aviso.copiado"));
   } catch {
-    prompt("Copie:", texto);
+    // Navegador bloqueou a copia (acontece fora de https): mostra pra copiar na mao
+    perguntar(t("aviso.copiarNaMao"), { texto, soOk: true });
   }
 }
 
@@ -288,8 +333,8 @@ $("btn-codigo").onclick = () => copiar(textoDoConvite());
 $("btn-convite").onclick = () => copiar(textoDoConvite());
 $("btn-painel").onclick = () => $("painel").classList.toggle("escondido");
 
-$("btn-sair").onclick = () => {
-  if (!confirm(t("aviso.sair"))) return;
+$("btn-sair").onclick = async () => {
+  if (!(await perguntar(t("aviso.sair")))) return;
   if (socket) socket.emit("sair");
   limparSessao();
   location.reload();
@@ -374,8 +419,10 @@ function desenharJogadores() {
       btn.className = "btn-expulsar";
       btn.title = t("painel.remover");
       btn.textContent = "×";
-      btn.onclick = () => {
-        if (confirm(t("aviso.remover", { nome: j.nome }))) socket.emit("expulsar", { jogadorId: j.id });
+      btn.onclick = async () => {
+        if (await perguntar(t("aviso.remover", { nome: j.nome }))) {
+          socket.emit("expulsar", { jogadorId: j.id });
+        }
       };
       li.appendChild(btn);
     }

@@ -153,6 +153,18 @@
 
 <div id="aviso" class="aviso"></div>
 
+<!-- Caixa de pergunta/aviso do proprio jogo, no lugar das do navegador -->
+<div id="dialogo" class="dialogo" hidden>
+  <div class="dialogo-caixa" role="dialog" aria-modal="true">
+    <p id="dialogo-msg" class="dialogo-msg"></p>
+    <p id="dialogo-texto" class="dialogo-texto" hidden></p>
+    <div class="dialogo-botoes">
+      <button id="dialogo-cancelar" class="botao"></button>
+      <button id="dialogo-ok" class="botao principal"></button>
+    </div>
+  </div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="idiomas.js"></script>
 <script src="client.js"></script>

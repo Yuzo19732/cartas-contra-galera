@@ -90,6 +90,9 @@ const TEXTOS = {
     "aviso.sair": "Sair da sala?",
     "aviso.remover": "Remover {nome} da sala?",
     "aviso.expulso": "Você foi removido da sala.",
+    "aviso.ok": "OK",
+    "aviso.cancelar": "Cancelar",
+    "aviso.copiarNaMao": "Não consegui copiar sozinho. Copia daqui:",
 
     "feed.tempoEsgotado": "Tempo esgotado. Cartas jogadas automaticamente.",
     "feed.partidaComecou": "A partida começou.",
@@ -183,6 +186,9 @@ const TEXTOS = {
     "aviso.sair": "Leave the room?",
     "aviso.remover": "Remove {nome} from the room?",
     "aviso.expulso": "You were removed from the room.",
+    "aviso.ok": "OK",
+    "aviso.cancelar": "Cancel",
+    "aviso.copiarNaMao": "Couldn't copy it for you. Copy from here:",
 
     "feed.tempoEsgotado": "Time's up. Cards played automatically.",
     "feed.partidaComecou": "The game has started.",
