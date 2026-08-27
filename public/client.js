@@ -645,7 +645,10 @@ function posicionarMao() {
   const larguraGirada = larguraCarta * Math.cos(rad) + alturaCarta * Math.sin(rad);
 
   const espacoUtil = Math.max(0, mao.clientWidth - larguraGirada - 2 * empurraoDoGiro - 8);
-  const passo = total > 1 ? Math.max(14, Math.min(78, espacoUtil / (total - 1))) : 0;
+  // O teto e alto de proposito: assim o leque preenche a mesma largura mesmo
+  // depois que voce joga uma carta. Com teto baixo, a mao ia encolhendo a cada
+  // rodada e dava a impressao de que as cartas tinham diminuido.
+  const passo = total > 1 ? Math.max(14, Math.min(115, espacoUtil / (total - 1))) : 0;
 
   cartas.forEach((carta, i) => {
     const desvio = i - meio;                       // negativo a esquerda, positivo a direita

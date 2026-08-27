@@ -396,14 +396,9 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
   box-shadow: 0 28px 46px rgba(0, 0, 0, .72), 0 0 0 6px rgba(255, 255, 255, .1);
 }
 
-/* Depois que voce joga, a mao fica de costas: nao da mais pra escolher, entao
-   nao levanta no hover - nao tem o que ler ali. */
+/* Depois que voce joga a mao fica de costas e nao da mais pra escolher, mas o
+   hover continua levantando a carta - a mao nao pode ficar dura de repente. */
 .mao .slot.bloqueada { cursor: default; }
-.mao .slot.bloqueada:hover { z-index: auto !important; }
-.mao .slot.bloqueada:hover .carta {
-  transform: none;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, .55);
-}
 
 
 .ordem {
