@@ -24,7 +24,7 @@ function criarJanela() {
     minWidth: 900,
     minHeight: 620,
     backgroundColor: "#000000",
-    title: "Cartas Contra a Galera",
+    title: "Cards Against Humanity",
     autoHideMenuBar: true,
     show: false,
     webPreferences: {

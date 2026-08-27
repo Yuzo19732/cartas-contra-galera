@@ -97,7 +97,7 @@ input::placeholder { color: #5a5a5a; }
   padding: 32px;
 }
 .topo-entrada { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.logo { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; margin-bottom: 16px; }
+.logo { display: flex; margin-bottom: 16px; }
 
 /* PT / EN */
 .troca-idioma { display: flex; gap: 4px; flex-shrink: 0; }
@@ -110,12 +110,13 @@ input::placeholder { color: #5a5a5a; }
 }
 .botao-idioma:hover { color: var(--texto); border-color: var(--texto-fraco); }
 .botao-idioma.ativo { background: var(--branco); color: var(--preto); border-color: var(--branco); }
+/* A marca, do jeito que ela e: o nome empilhado em branco sobre um bloco preto */
 .logo-carta {
-  font-size: 26px; letter-spacing: -0.03em; line-height: 1.05;
-  padding: 9px 13px; border-radius: var(--raio-carta);
+  display: inline-block;
+  font-size: 30px; letter-spacing: -0.04em; line-height: 0.98;
+  padding: 16px 18px 18px; border-radius: var(--raio-carta);
 }
 .logo-carta.preta { background: var(--preto); color: var(--branco); border: 1px solid var(--borda-forte); }
-.logo-carta.branca { background: var(--branco); color: var(--preto); }
 .subtitulo { color: var(--texto-fraco); font-size: 14px; line-height: 1.45; margin-bottom: 6px; }
 
 .ou {
