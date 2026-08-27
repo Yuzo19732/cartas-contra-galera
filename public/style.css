@@ -266,6 +266,22 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
 .carta.preta { background: var(--preto); color: var(--branco); border: 1px solid var(--borda-forte); }
 .carta.branca { background: var(--branco); color: var(--preto); }
 
+/* O verso da carta: a marca em preto sobre o branco, empilhada no alto */
+.carta.verso {
+  background: var(--branco);
+  color: var(--preto);
+  justify-content: flex-start;
+  padding: 14px;
+}
+.marca-verso {
+  /* 17,8% da largura da carta: a linha mais longa ("Humanity") ocupa ~78% dela,
+     que e a proporcao da carta impressa. Sobra folga pro caso de cair na Arial,
+     que e 2% mais larga que a Neue Helvetica. */
+  font-size: calc(var(--larg, 190px) * 0.178);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
 .carta.grande {
   /* a altura acompanha a tela pra caber sem rolar; a largura sai da proporcao */
   height: clamp(300px, 42vh, 440px);
@@ -380,10 +396,14 @@ button.chip:hover { background: var(--branco); color: var(--preto); border-color
   box-shadow: 0 28px 46px rgba(0, 0, 0, .72), 0 0 0 6px rgba(255, 255, 255, .1);
 }
 
-/* Depois que voce ja jogou, as cartas continuam normais - so nao da mais pra
-   escolher. Antes elas ficavam apagadas e, sobrepostas no leque, viravam um
-   borrao ilegivel. O hover continua levantando pra voce ler o que sobrou. */
+/* Depois que voce joga, a mao fica de costas: nao da mais pra escolher, entao
+   nao levanta no hover - nao tem o que ler ali. */
 .mao .slot.bloqueada { cursor: default; }
+.mao .slot.bloqueada:hover { z-index: auto !important; }
+.mao .slot.bloqueada:hover .carta {
+  transform: none;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .55);
+}
 
 
 .ordem {

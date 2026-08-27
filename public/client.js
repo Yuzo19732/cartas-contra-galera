@@ -584,8 +584,14 @@ function desenharMao() {
     slot.className = "slot";
 
     const div = document.createElement("div");
-    div.className = "carta branca";
-    div.innerHTML = `<div class="corpo-carta">${escapar(carta.texto)}</div>` + rodapeCarta(1);
+    if (podeEscolher) {
+      div.className = "carta branca";
+      div.innerHTML = `<div class="corpo-carta">${escapar(carta.texto)}</div>` + rodapeCarta(1);
+    } else {
+      // Ja jogou: a mao vira de costas, mostrando a logo, igual na mesa de verdade
+      div.className = "carta verso";
+      div.innerHTML = '<div class="marca-verso">Cards<br>Against<br>Humanity</div>';
+    }
     slot.appendChild(div);
 
     if (!podeEscolher) {
